@@ -1,0 +1,98 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+// Update Program.cs to configure DB, authentication, DI and Swagger
+var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Determine connection string (env var takes precedence)
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string is not configured. Set the CONNECTION_STRING environment variable or ConnectionStrings:DefaultConnection in configuration.");
+}
+
+// Configure DbContext (SQL Server)
+builder.Services.AddDbContext<Application.Infrastructure.Persistence.AuthDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// Register infrastructure services
+builder.Services.AddScoped<Application.Core.Interfaces.IUserRepository, Application.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<Application.Core.Interfaces.ITokenService, Application.Infrastructure.Services.TokenService>();
+
+// JWT Authentication (env vars take precedence, fallback to appsettings)
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? configuration["Jwt:Key"];
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? configuration["Jwt:Issuer"];
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? configuration["Jwt:Audience"];
+var jwtAccessMinutesStr = Environment.GetEnvironmentVariable("JWT_ACCESS_MINUTES") ?? configuration["Jwt:AccessTokenExpirationMinutes"] ?? "60";
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT key is not configured. Set the JWT_KEY environment variable or Jwt:Key in configuration.");
+}
+
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT issuer and audience must be configured via environment variables JWT_ISSUER and JWT_AUDIENCE or in configuration.");
+}
+
+if (!int.TryParse(jwtAccessMinutesStr, out var jwtAccessMinutes))
+{
+    jwtAccessMinutes = 60;
+}
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateLifetime = true
+    };
+});
+
+var app = builder.Build();
+
+// Ensure DB created (will use SQL Server)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<Application.Infrastructure.Persistence.AuthDbContext>();
+    db.Database.Migrate();
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

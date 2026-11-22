@@ -1,0 +1,41 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Application.Infrastructure.Persistence;
+
+namespace Application.Infrastructure.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly AuthDbContext _db;
+        public UserRepository(AuthDbContext db) => _db = db;
+
+        public async Task AddAsync(User user) => await _db.Users.AddAsync(user);
+
+        public async Task<User?> GetByIdAsync(Guid id)
+            => await _db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Id == id);
+
+        public async Task<User?> GetByUserNameAsync(string userName)
+            => await _db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.UserName == userName);
+
+        public async Task<User?> GetByEmailAsync(string email)
+            => await _db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Email == email);
+
+        public async Task<User?> GetByUserNameOrEmailAsync(string userNameOrEmail)
+            => await _db.Users.Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.UserName == userNameOrEmail || u.Email == userNameOrEmail);
+
+        public async Task UpdateAsync(User user)
+        {
+            _db.Users.Update(user);
+            await Task.CompletedTask;
+        }
+
+        public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
+
+        public async Task<RefreshToken?> GetRefreshTokenAsync(string refreshToken)
+            => await _db.RefreshTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.Token == refreshToken);
+    }
+}

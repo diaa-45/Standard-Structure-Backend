@@ -1,0 +1,17 @@
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Infrastructure.deps.json
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Infrastructure.runtimeconfig.json
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Infrastructure.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Infrastructure.pdb
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Core.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\bin\Debug\net9.0\Application.Core.pdb
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.AssemblyInfo.cs
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Applicat.CAD867DE.Up2Date
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\refint\Application.Infrastructure.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.pdb
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\Application.Infrastructure.genruntimeconfig.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Infrastructure\obj\Debug\net9.0\ref\Application.Infrastructure.dll

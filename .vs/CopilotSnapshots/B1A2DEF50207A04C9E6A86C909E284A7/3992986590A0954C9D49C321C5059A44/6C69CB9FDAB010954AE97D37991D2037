@@ -1,0 +1,18 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=app_auth_db;Trusted_Connection=True;"
+  },
+  "Jwt": {
+    "Key": "ChangeThisToAStrongSecretKeyAtLeast32Chars",
+    "Issuer": "Application",
+    "Audience": "ApplicationClients",
+    "AccessTokenExpirationMinutes": "60"
+  }
+}

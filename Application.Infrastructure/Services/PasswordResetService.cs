@@ -1,0 +1,54 @@
+using System;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.Infrastructure.Services
+{
+    public class PasswordResetService
+    {
+        private readonly IUserRepository _users;
+        private readonly IConfiguration _config;
+
+        public PasswordResetService(IUserRepository users, IConfiguration config)
+        {
+            _users = users;
+            _config = config;
+        }
+
+        public async Task<string> GenerateResetTokenAsync(User user, TimeSpan? ttl = null)
+        {
+            var tokenBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(tokenBytes);
+            var token = Convert.ToBase64String(tokenBytes);
+            var expires = DateTime.UtcNow.ToLocalTime().Add(ttl ?? TimeSpan.FromHours(1));
+            var prt = new PasswordResetToken
+            {
+                Token = token,
+                UserId = user.Id,
+                Created = DateTime.UtcNow.ToLocalTime(),
+                Expires = expires
+            };
+            await _users.AddPasswordResetTokenAsync(prt);
+            await _users.SaveChangesAsync();
+            return token;
+        }
+
+        public async Task<PasswordResetToken?> ValidateAndConsumeTokenAsync(string token)
+        {
+            var prt = await _users.GetPasswordResetTokenAsync(token);
+            if (prt == null) return null;
+            if (prt.IsUsed) return null;
+            if (prt.Expires < DateTime.UtcNow.ToLocalTime()) return null;
+            prt.IsUsed = true;
+            await _users.UpdatePasswordResetTokenAsync(prt);
+            await _users.SaveChangesAsync();
+            return prt;
+        }
+    }
+}

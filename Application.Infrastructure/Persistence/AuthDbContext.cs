@@ -1,0 +1,86 @@
+using Microsoft.EntityFrameworkCore;
+using Application.Core.Entities;
+
+namespace Application.Infrastructure.Persistence
+{
+    public class AuthDbContext : DbContext
+    {
+        public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) { }
+
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; } = null!;
+
+        // Roles & permissions
+        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<Permission> Permissions { get; set; } = null!;
+        public DbSet<UserRole> UserRoles { get; set; } = null!;
+        public DbSet<RolePermission> RolePermissions { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>(b =>
+            {
+                b.HasKey(u => u.Id);
+                b.HasIndex(u => u.UserName).IsUnique();
+                b.HasIndex(u => u.Email).IsUnique();
+                b.Property(u => u.UserName).IsRequired();
+                b.Property(u => u.Email).IsRequired();
+                b.Property(u => u.PasswordHash).IsRequired();
+                b.Property(u => u.LastLoginIp).HasMaxLength(45);
+            });
+
+            modelBuilder.Entity<RefreshToken>(b =>
+            {
+                b.HasKey(t => t.Id);
+                b.HasIndex(t => t.Token).IsUnique();
+                b.HasOne(t => t.User)
+     .WithMany(u => u.RefreshTokens)
+     .HasForeignKey(t => t.UserId)
+     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PasswordResetToken>(b =>
+            {
+                b.HasKey(t => t.Id);
+                b.HasIndex(t => t.Token).IsUnique();
+                b.HasOne(t => t.User)
+     .WithMany()
+     .HasForeignKey(t => t.UserId)
+     .OnDelete(DeleteBehavior.Cascade);
+                b.Property(t => t.IsUsed).HasDefaultValue(false);
+            });
+
+            // Roles
+            modelBuilder.Entity<Role>(b =>
+            {
+                b.HasKey(r => r.Id);
+                b.HasIndex(r => r.Name).IsUnique();
+                b.Property(r => r.Name).IsRequired();
+            });
+
+            modelBuilder.Entity<Permission>(b =>
+            {
+                b.HasKey(p => p.Id);
+                b.HasIndex(p => p.Name).IsUnique();
+                b.Property(p => p.Name).IsRequired();
+            });
+
+            // UserRole join
+            modelBuilder.Entity<UserRole>(b =>
+            {
+                b.HasKey(ur => new { ur.UserId, ur.RoleId });
+                b.HasOne(ur => ur.User).WithMany(u => u.UserRoles).HasForeignKey(ur => ur.UserId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(ur => ur.Role).WithMany(r => r.UserRoles).HasForeignKey(ur => ur.RoleId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // RolePermission join
+            modelBuilder.Entity<RolePermission>(b =>
+            {
+                b.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+                b.HasOne(rp => rp.Role).WithMany(r => r.RolePermissions).HasForeignKey(rp => rp.RoleId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(rp => rp.Permission).WithMany(p => p.RolePermissions).HasForeignKey(rp => rp.PermissionId).OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+    }
+}

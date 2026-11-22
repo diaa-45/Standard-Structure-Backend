@@ -1,0 +1,206 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|solutionrelative:application.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.core\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|solutionrelative:application.core\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|solutionrelative:application.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.api\\controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|solutionrelative:application.api\\controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|solutionrelative:application.core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{13334648-00E9-491C-9A5D-4732D3016699}|Application.Api\\Application.Api.csproj|solutionrelative:application.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.infrastructure\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|solutionrelative:application.infrastructure\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.core\\entities\\userrole.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|solutionrelative:application.core\\entities\\userrole.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.core\\entities\\rolepermission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|solutionrelative:application.core\\entities\\rolepermission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.core\\entities\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{77B25985-EEFB-4027-B3BE-4206038AA61D}|Application.Core\\Application.Core.csproj|solutionrelative:application.core\\entities\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|c:\\users\\diaa.mohamed\\source\\repos\\application\\application.infrastructure\\services\\smtpemailsender.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D175A2F1-4D32-4AF3-AB41-BCA83C22DBD6}|Application.Infrastructure\\Application.Infrastructure.csproj|solutionrelative:application.infrastructure\\services\\smtpemailsender.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UserDto.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\DTOs\\UserDto.cs",
+              "RelativeDocumentMoniker": "Application.Core\\DTOs\\UserDto.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\DTOs\\UserDto.cs",
+              "RelativeToolTip": "Application.Core\\DTOs\\UserDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-18T08:51:37.666Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Program.cs",
+              "RelativeDocumentMoniker": "Application.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Program.cs",
+              "RelativeToolTip": "Application.Api\\Program.cs",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAAAH4AAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:35:46.051Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "TokenService.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Services\\TokenService.cs",
+              "RelativeDocumentMoniker": "Application.Infrastructure\\Services\\TokenService.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Services\\TokenService.cs",
+              "RelativeToolTip": "Application.Infrastructure\\Services\\TokenService.cs",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAAACcAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:34:41.69Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IUserRepository.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Interfaces\\IUserRepository.cs",
+              "RelativeDocumentMoniker": "Application.Core\\Interfaces\\IUserRepository.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Interfaces\\IUserRepository.cs",
+              "RelativeToolTip": "Application.Core\\Interfaces\\IUserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:26:48.275Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RolesController.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Controllers\\RolesController.cs",
+              "RelativeDocumentMoniker": "Application.Api\\Controllers\\RolesController.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Controllers\\RolesController.cs",
+              "RelativeToolTip": "Application.Api\\Controllers\\RolesController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:19:08.646Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UserRepository.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Repositories\\UserRepository.cs",
+              "RelativeDocumentMoniker": "Application.Infrastructure\\Repositories\\UserRepository.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Repositories\\UserRepository.cs",
+              "RelativeToolTip": "Application.Infrastructure\\Repositories\\UserRepository.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwBIAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:08:56.517Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "Application.Api\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Api\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "Application.Api\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAmwKEAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-07T12:59:27.895Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "UserRole.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\UserRole.cs",
+              "RelativeDocumentMoniker": "Application.Core\\Entities\\UserRole.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\UserRole.cs",
+              "RelativeToolTip": "Application.Core\\Entities\\UserRole.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:08:09.543Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "RolePermission.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\RolePermission.cs",
+              "RelativeDocumentMoniker": "Application.Core\\Entities\\RolePermission.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\RolePermission.cs",
+              "RelativeToolTip": "Application.Core\\Entities\\RolePermission.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:08:04.113Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Role.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\Role.cs",
+              "RelativeDocumentMoniker": "Application.Core\\Entities\\Role.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Core\\Entities\\Role.cs",
+              "RelativeToolTip": "Application.Core\\Entities\\Role.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T08:07:52.975Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "SmtpEmailSender.cs",
+              "DocumentMoniker": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Services\\SmtpEmailSender.cs",
+              "RelativeDocumentMoniker": "Application.Infrastructure\\Services\\SmtpEmailSender.cs",
+              "ToolTip": "C:\\Users\\Diaa.Mohamed\\source\\repos\\Application\\Application.Infrastructure\\Services\\SmtpEmailSender.cs",
+              "RelativeToolTip": "Application.Infrastructure\\Services\\SmtpEmailSender.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAAAwDQAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-14T10:15:01.098Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

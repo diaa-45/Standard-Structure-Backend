@@ -1,0 +1,11 @@
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\bin\Debug\net9.0\Application.Core.deps.json
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\bin\Debug\net9.0\Application.Core.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\bin\Debug\net9.0\Application.Core.pdb
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.AssemblyInfoInputs.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.AssemblyInfo.cs
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.csproj.CoreCompileInputs.cache
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\refint\Application.Core.dll
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\Application.Core.pdb
+C:\Users\Diaa.Mohamed\source\repos\Application\Application.Core\obj\Debug\net9.0\ref\Application.Core.dll

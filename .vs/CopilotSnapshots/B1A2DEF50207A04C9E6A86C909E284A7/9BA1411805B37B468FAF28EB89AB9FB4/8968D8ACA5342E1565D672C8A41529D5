@@ -1,0 +1,200 @@
+﻿using Application.Core.DTOs;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Application.Infrastructure.Persistence;
+using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Infrastructure.Services
+{
+    public class TokenService : ITokenService
+    {
+        private readonly AuthDbContext _db;
+        private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _http;
+
+        public TokenService(AuthDbContext db, IConfiguration config, IHttpContextAccessor http)
+        {
+            _db = db;
+            _config = config;
+            _http = http;
+        }
+
+        public async Task<AuthResponse> CreateTokensAsync(User user)
+        {
+            var jwt = CreateJwtToken(user);
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
+            // return expiry in local time for callers that expect local time
+            var accessExpires = jwt.ValidTo.ToLocalTime();
+
+            var refresh = CreateRefreshToken();
+            refresh.UserId = user.Id;
+            refresh.CreatedByIp = GetClientIp();
+            await _db.RefreshTokens.AddAsync(refresh);
+            await _db.SaveChangesAsync();
+
+            return new AuthResponse(accessToken, refresh.Token, accessExpires);
+        }
+
+        public async Task<AuthResponse?> RefreshAsync(string refreshToken)
+        {
+            var stored = await _db.RefreshTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.Token == refreshToken);
+            if (stored == null || !stored.IsActive || stored.User == null)
+                return null;
+
+            // revoke current refresh token
+            stored.Revoked = DateTime.UtcNow;
+            stored.RevokedByIp = GetClientIp();
+            _db.RefreshTokens.Update(stored);
+
+            // issue new tokens
+            var user = stored.User;
+            var jwt = CreateJwtToken(user);
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
+            var accessExpires = jwt.ValidTo.ToLocalTime();
+
+            var newRefresh = CreateRefreshToken();
+            newRefresh.UserId = user.Id;
+            newRefresh.CreatedByIp = GetClientIp();
+            await _db.RefreshTokens.AddAsync(newRefresh);
+
+            await _db.SaveChangesAsync();
+
+            return new AuthResponse(accessToken, newRefresh.Token, accessExpires);
+        }
+
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var stored = await _db.RefreshTokens.FirstOrDefaultAsync(t => t.Token == refreshToken);
+            if (stored == null) return;
+            stored.Revoked = DateTime.UtcNow;
+            stored.RevokedByIp = GetClientIp();
+            _db.RefreshTokens.Update(stored);
+            await _db.SaveChangesAsync();
+        }
+
+        private JwtSecurityToken CreateJwtToken(User user)
+        {
+            var jwtCfg = _config.GetSection("Jwt");
+            var keyString = jwtCfg["Key"] ?? throw new InvalidOperationException("JWT key is not configured.");
+            var keyBytes = GetSigningKeyBytes(keyString);
+            var key = new SymmetricSecurityKey(keyBytes);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var expiresMinutes = int.Parse(jwtCfg["AccessTokenExpirationMinutes"] ?? "60");
+
+            var claims = new[]
+            {
+ new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+ new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+ new Claim(JwtRegisteredClaimNames.Email, user.Email)
+ };
+
+            var now = DateTime.UtcNow;
+            return new JwtSecurityToken(
+            issuer: jwtCfg["Issuer"],
+            audience: jwtCfg["Audience"],
+            claims: claims,
+            notBefore: now,
+            expires: now.AddMinutes(expiresMinutes),
+            signingCredentials: creds
+            );
+        }
+
+        private static RefreshToken CreateRefreshToken()
+        {
+            var randomBytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomBytes),
+                Created = DateTime.UtcNow,
+                Expires = DateTime.UtcNow.AddDays(7) // configurable in future
+            };
+        }
+
+        private static byte[] GetSigningKeyBytes(string key)
+        {
+            var bytes = Encoding.UTF8.GetBytes(key);
+            if (bytes.Length >=32) return bytes; //256 bits
+            // Derive a256-bit key by hashing the provided key with SHA256
+            using var sha = SHA256.Create();
+            return sha.ComputeHash(Encoding.UTF8.GetBytes(key));
+        }
+
+        private string GetClientIp()
+        {
+            try
+            {
+                // Prefer X-Forwarded-For (in case app is behind a proxy/load balancer)
+                if (Request.Headers.TryGetValue("X-Forwarded-For", out var values))
+                {
+                    var first = values.ToString().Split(',')[0]?.Trim();
+                    if (!string.IsNullOrWhiteSpace(first))
+                    {
+                        return NormalizeIp(first);
+                    }
+                }
+
+                // Fallback to connection remote IP
+                var remote = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? string.Empty;
+                return NormalizeIp(remote);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private static string NormalizeIp(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip)) return string.Empty;
+
+            // Handle IPv6 loopback and mapped IPv4
+            try
+            {
+                if (IPAddress.TryParse(ip, out var addr))
+                {
+                    if (IPAddress.IPv6Loopback.Equals(addr))
+                        return IPAddress.Loopback.ToString(); //127.0.0.1
+
+                    if (addr.IsIPv4MappedToIPv6 || (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && addr.ToString().StartsWith("::ffff:")))
+                    {
+                        try
+                        {
+                            var v4 = addr.MapToIPv4();
+                            return v4.ToString();
+                        }
+                        catch
+                        {
+                            return ip;
+                        }
+                    }
+
+                    return addr.ToString();
+                }
+            }
+            catch
+            {
+                // ignore parse errors
+            }
+
+            return ip;
+        }
+
+        // Helper for password hashing (used by repository or service caller)
+        public static string HashPassword(string password) => BCrypt.Net.BCrypt.EnhancedHashPassword(password);
+        public static bool VerifyPassword(string password, string hash) => BCrypt.Net.BCrypt.EnhancedVerify(password, hash);
+    }
+}

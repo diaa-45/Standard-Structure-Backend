@@ -1,0 +1,4 @@
+namespace Application.Core.DTOs
+{
+    public record RoleDto(string Name);
+}

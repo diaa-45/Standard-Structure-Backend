@@ -1,0 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Application.Infrastructure.Persistence;
+
+namespace Application.Infrastructure.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly AuthDbContext _db;
+        public UserRepository(AuthDbContext db) => _db = db;
+
+        public async Task AddAsync(User user) => await _db.Users.AddAsync(user);
+        public async Task<IEnumerable<User>> GetAll()
+        {
+           return await _db.Users.ToListAsync();
+        }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        => await _db.Users.Include(u => u.RefreshTokens).Include(u => u.UserRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.Id == id);
+
+        public async Task<User?> GetByUserNameAsync(string userName)
+        => await _db.Users.Include(u => u.RefreshTokens).Include(u => u.UserRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.UserName == userName);
+
+        public async Task<User?> GetByEmailAsync(string email)
+        => await _db.Users.Include(u => u.RefreshTokens).Include(u => u.UserRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.Email == email);
+
+        public async Task<User?> GetByUserNameOrEmailAsync(string userNameOrEmail)
+        => await _db.Users.Include(u => u.RefreshTokens).Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+        .FirstOrDefaultAsync(u => u.UserName == userNameOrEmail || u.Email == userNameOrEmail);
+
+        public async Task UpdateAsync(User user)
+        {
+            _db.Users.Update(user);
+            await Task.CompletedTask;
+        }
+
+        public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
+
+        public async Task<RefreshToken?> GetRefreshTokenAsync(string refreshToken)
+        => await _db.RefreshTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.Token == refreshToken);
+
+        // Password reset token support
+        public async Task AddPasswordResetTokenAsync(PasswordResetToken token) => await _db.Set<PasswordResetToken>().AddAsync(token);
+        public async Task<PasswordResetToken?> GetPasswordResetTokenAsync(string token)
+        => await _db.Set<PasswordResetToken>().Include(t => t.User).FirstOrDefaultAsync(t => t.Token == token);
+        public async Task UpdatePasswordResetTokenAsync(PasswordResetToken token) { _db.Set<PasswordResetToken>().Update(token); await Task.CompletedTask; }
+
+        // Roles & permissions
+        public async Task<Role?> GetRoleByNameAsync(string roleName)
+        => await _db.Roles.Include(r => r.RolePermissions).ThenInclude(rp => rp.Permission).FirstOrDefaultAsync(r => r.Name == roleName);
+
+        public async Task AddRoleAsync(Role role) => await _db.Roles.AddAsync(role);
+        public async Task UpdateRoleAsync(Role role) { _db.Roles.Update(role); await Task.CompletedTask; }
+        public async Task<List<string>> GetAllRolesAsync() => await _db.Roles.Select(r=> r.Name).ToListAsync();
+        public async Task<List<string>> GetRolesForUserAsync(Guid userId)
+        {
+            var userRoles = await _db.UserRoles.Include(ur => ur.Role).Where(ur => ur.UserId == userId)
+                                           .Select(ur => ur.Role.Name).ToListAsync();
+            return userRoles;
+        }
+        public async Task<Permission?> GetPermissionByNameAsync(string permissionName)
+        => await _db.Permissions.FirstOrDefaultAsync(p => p.Name == permissionName);
+        public async Task<List<string>> GetPermissionsForRoleAsync(Guid roleId)
+        {
+            var rolePermissions = await _db.RolePermissions.Include(rp => rp.Permission).Where(rp => rp.RoleId == roleId)
+                                                           .Select(rp => rp.Permission.Name).ToListAsync();
+            return rolePermissions;
+        }
+
+        public async Task AddPermissionAsync(Permission permission) => await _db.Permissions.AddAsync(permission);
+        public async Task UpdatePermissionAsync(Permission permission) { _db.Permissions.Update(permission); await Task.CompletedTask; }
+        public async Task<List<string>> GetAllPermissionsAsync() => await _db.Permissions.Select(p=> p.Name).ToListAsync();
+    }
+}

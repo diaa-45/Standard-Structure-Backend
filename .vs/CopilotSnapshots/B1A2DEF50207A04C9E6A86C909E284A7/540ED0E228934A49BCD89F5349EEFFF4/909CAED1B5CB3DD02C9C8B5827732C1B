@@ -1,0 +1,142 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Application.Core.DTOs;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Application.Infrastructure.Services;
+using System;
+using System.Net;
+
+namespace Application.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
+    {
+        private readonly IUserRepository _users;
+        private readonly ITokenService _tokens;
+
+        public AuthController(IUserRepository users, ITokenService tokens)
+        {
+            _users = users;
+            _tokens = tokens;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest req)
+        {
+            var exists = await _users.GetByUserNameAsync(req.UserName) ?? await _users.GetByEmailAsync(req.Email);
+            if (exists != null) return Conflict("User with same username or email already exists.");
+
+            var user = new User
+            {
+                UserName = req.UserName,
+                Email = req.Email,
+                PasswordHash = Application.Infrastructure.Services.TokenService.HashPassword(req.Password),
+                LastLoginAt = DateTime.UtcNow.ToLocalTime(),
+                LastLoginIp = GetClientIp()
+            };
+
+            await _users.AddAsync(user);
+            await _users.SaveChangesAsync();
+
+            var auth = await _tokens.CreateTokensAsync(user);
+            return Ok(auth);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest req)
+        {
+            var user = await _users.GetByUserNameOrEmailAsync(req.UserNameOrEmail);
+            if (user == null) return Unauthorized("Invalid credentials.");
+
+            if (!Application.Infrastructure.Services.TokenService.VerifyPassword(req.Password, user.PasswordHash))
+                return Unauthorized("Invalid credentials.");
+
+            // update last login info
+            user.LastLoginAt = DateTime.UtcNow.ToLocalTime();
+            user.LastLoginIp = GetClientIp();
+            await _users.UpdateAsync(user);
+            await _users.SaveChangesAsync();
+
+            var auth = await _tokens.CreateTokensAsync(user);
+            return Ok(auth);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest req)
+        {
+            var result = await _tokens.RefreshAsync(req.RefreshToken);
+            if (result == null) return Unauthorized("Invalid refresh token.");
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] RefreshRequest req)
+        {
+            await _tokens.RevokeRefreshTokenAsync(req.RefreshToken);
+            return NoContent();
+        }
+
+        private string GetClientIp()
+        {
+            try
+            {
+                // Prefer X-Forwarded-For (in case app is behind a proxy/load balancer)
+                if (Request.Headers.TryGetValue("X-Forwarded-For", out var values))
+                {
+                    var first = values.ToString().Split(',')[0]?.Trim();
+                    if (!string.IsNullOrWhiteSpace(first))
+                    {
+                        return NormalizeIp(first);
+                    }
+                }
+
+                // Fallback to connection remote IP
+                var remote = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? string.Empty;
+                return NormalizeIp(remote);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private static string NormalizeIp(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip)) return string.Empty;
+
+            // Handle IPv6 loopback and mapped IPv4
+            try
+            {
+                if (IPAddress.TryParse(ip, out var addr))
+                {
+                    if (addr.IsIPv6Loopback)
+                        return IPAddress.Loopback.ToString(); //127.0.0.1
+
+                    if (addr.IsIPv4MappedToIPv6 || (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && addr.ToString().StartsWith("::ffff:")))
+                    {
+                        try
+                        {
+                            var v4 = addr.MapToIPv4();
+                            return v4.ToString();
+                        }
+                        catch
+                        {
+                            return ip;
+                        }
+                    }
+
+                    return addr.ToString();
+                }
+            }
+            catch
+            {
+                // ignore parse errors
+            }
+
+            return ip;
+        }
+    }
+}

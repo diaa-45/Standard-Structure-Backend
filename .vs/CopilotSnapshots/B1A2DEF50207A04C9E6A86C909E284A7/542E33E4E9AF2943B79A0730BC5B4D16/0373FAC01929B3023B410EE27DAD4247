@@ -1,0 +1,98 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+// Update Program.cs to configure DB, authentication, DI and Swagger
+var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Read connection string from configuration (user-secrets or appsettings)
+var connectionString = configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string is not configured. Set ConnectionStrings:DefaultConnection in user-secrets or appsettings.");
+}
+
+// Configure DbContext (SQL Server)
+builder.Services.AddDbContext<Application.Infrastructure.Persistence.AuthDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// Register infrastructure services
+builder.Services.AddScoped<Application.Core.Interfaces.IUserRepository, Application.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<Application.Core.Interfaces.ITokenService, Application.Infrastructure.Services.TokenService>();
+
+// JWT Authentication (read from configuration/user-secrets)
+var jwtKey = configuration["Jwt:Key"];
+var jwtIssuer = configuration["Jwt:Issuer"];
+var jwtAudience = configuration["Jwt:Audience"];
+var jwtAccessMinutesStr = configuration["Jwt:AccessTokenExpirationMinutes"] ?? "60";
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT key is not configured. Set Jwt:Key in user-secrets or appsettings.");
+}
+
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT issuer and audience must be configured in user-secrets or appsettings (Jwt:Issuer and Jwt:Audience).");
+}
+
+if (!int.TryParse(jwtAccessMinutesStr, out var jwtAccessMinutes))
+{
+    jwtAccessMinutes = 60;
+}
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateLifetime = true
+    };
+});
+
+var app = builder.Build();
+
+// Ensure DB created (will use SQL Server)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<Application.Infrastructure.Persistence.AuthDbContext>();
+    db.Database.Migrate();
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

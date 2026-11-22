@@ -1,0 +1,206 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Application.Core.DTOs;
+using Application.Core.Entities;
+using Application.Core.Interfaces;
+using Application.Infrastructure.Services;
+using System;
+using System.Net;
+
+namespace Application.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
+    {
+        private readonly IUserRepository _users;
+        private readonly ITokenService _tokens;
+        private readonly PasswordResetService _passwordReset;
+
+        public AuthController(IUserRepository users, ITokenService tokens, PasswordResetService passwordReset)
+        {
+            _users = users;
+            _tokens = tokens;
+            _passwordReset = passwordReset;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest req)
+        {
+            var exists = await _users.GetByUserNameAsync(req.UserName) ?? await _users.GetByEmailAsync(req.Email);
+            if (exists != null) return Conflict("User with same username or email already exists.");
+
+            var user = new User
+            {
+                UserName = req.UserName,
+                Email = req.Email,
+                PasswordHash = Application.Infrastructure.Services.TokenService.HashPassword(req.Password),
+                LastLoginAt = DateTime.UtcNow.ToLocalTime(),
+                LastLoginIp = GetClientIp()
+            };
+
+            await _users.AddAsync(user);
+            await _users.SaveChangesAsync();
+
+            var auth = await _tokens.CreateTokensAsync(user);
+            // Build register response with user info and expiresIn seconds
+            var now = DateTime.UtcNow;
+            var expiresInSeconds = (int)(auth.AccessTokenExpires.ToUniversalTime() - now).TotalSeconds;
+            var userDto = new UserDto(user.Id, user.Email, user.UserName);
+            var registerResponse = new Response(auth.AccessToken, expiresInSeconds, userDto);
+
+            return Ok(registerResponse);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest req)
+        {
+            var user = await _users.GetByEmailAsync(req.Email);
+            if (user == null) return Unauthorized("Invalid credentials.");
+
+            if (!Application.Infrastructure.Services.TokenService.VerifyPassword(req.Password, user.PasswordHash))
+                return Unauthorized("Invalid credentials.");
+
+            // update last login info
+            user.LastLoginAt = DateTime.UtcNow.ToLocalTime();
+            user.LastLoginIp = GetClientIp();
+            await _users.UpdateAsync(user);
+            await _users.SaveChangesAsync();
+
+            var auth = await _tokens.CreateTokensAsync(user);
+
+            // Build login response with user info and expiresIn seconds
+            var now = DateTime.UtcNow;
+            var expiresInSeconds = (int)(auth.AccessTokenExpires.ToUniversalTime() - now).TotalSeconds;
+            var userDto = new UserDto(user.Id, user.Email, user.UserName);
+            var loginResponse = new Response(auth.AccessToken, expiresInSeconds, userDto);
+
+            return Ok(loginResponse);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest req)
+        {
+            var result = await _tokens.RefreshAsync(req.RefreshToken);
+            if (result == null) return Unauthorized("Invalid refresh token.");
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] RefreshRequest req)
+        {
+            await _tokens.RevokeRefreshTokenAsync(req.RefreshToken);
+            return NoContent();
+        }
+
+        [HttpPost("request-password-reset")]
+        public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequest req)
+        {
+            var user = await _users.GetByEmailAsync(req.Email);
+            if (user == null) return Ok(); // do not reveal absence
+
+            var token = await _passwordReset.GenerateResetTokenAsync(user);
+
+            // Build reset URL from configuration
+            var frontendBase = HttpContext.Request.Scheme + "://" + HttpContext.Request.Host.Value; // fallback to current host
+            var configuredBase = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+            var baseUrl = configuredBase?["AppSettings:FrontendBaseUrl"] ?? frontendBase;
+            var resetUrl = $"{baseUrl.TrimEnd('/')}/reset-password?token={System.Net.WebUtility.UrlEncode(token)}";
+
+            // send email
+            var emailSender = HttpContext.RequestServices.GetService(typeof(Application.Core.Interfaces.IEmailSender)) as Application.Core.Interfaces.IEmailSender;
+            if (emailSender != null)
+            {
+                var subject = "Password reset request";
+                var html = $"<p>Use the link below to reset your password. The link will expire in1 hour.</p><p><a href=\"{resetUrl}\">Reset Password</a></p>";
+                await emailSender.SendEmailAsync(user.Email, subject, html);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] PasswordResetConfirmRequest req)
+        {
+            var prt = await _passwordReset.ValidateAndConsumeTokenAsync(req.Token);
+            if (prt == null) return BadRequest("Invalid or expired token.");
+
+            var user = await _users.GetByIdAsync(prt.UserId);
+            if (user == null) return BadRequest("Invalid token user.");
+
+            user.PasswordHash = Application.Infrastructure.Services.TokenService.HashPassword(req.NewPassword);
+            await _users.UpdateAsync(user);
+            await _users.SaveChangesAsync();
+
+            // send confirmation email (best practice)
+            var emailSender = HttpContext.RequestServices.GetService(typeof(Application.Core.Interfaces.IEmailSender)) as Application.Core.Interfaces.IEmailSender;
+            if (emailSender != null)
+            {
+                await emailSender.SendEmailAsync(user.Email, "Your password was changed", "If you did not perform this action, contact support immediately.");
+            }
+
+            return Ok();
+        }
+
+        private string GetClientIp()
+        {
+            try
+            {
+                // Prefer X-Forwarded-For (in case app is behind a proxy/load balancer)
+                if (Request.Headers.TryGetValue("X-Forwarded-For", out var values))
+                {
+                    var first = values.ToString().Split(',')[0]?.Trim();
+                    if (!string.IsNullOrWhiteSpace(first))
+                    {
+                        return NormalizeIp(first);
+                    }
+                }
+
+                // Fallback to connection remote IP
+                var remote = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? string.Empty;
+                return NormalizeIp(remote);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private static string NormalizeIp(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip)) return string.Empty;
+
+            // Handle IPv6 loopback and mapped IPv4
+            try
+            {
+                if (IPAddress.TryParse(ip, out var addr))
+                {
+                    if (IPAddress.IPv6Loopback.Equals(addr))
+                        return IPAddress.Loopback.ToString(); //127.0.0.1
+
+                    if (addr.IsIPv4MappedToIPv6 || (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && addr.ToString().StartsWith("::ffff:")))
+                    {
+                        try
+                        {
+                            var v4 = addr.MapToIPv4();
+                            return v4.ToString();
+                        }
+                        catch
+                        {
+                            return ip;
+                        }
+                    }
+
+                    return addr.ToString();
+                }
+            }
+            catch
+            {
+                // ignore parse errors
+            }
+
+            return ip;
+        }
+    }
+}

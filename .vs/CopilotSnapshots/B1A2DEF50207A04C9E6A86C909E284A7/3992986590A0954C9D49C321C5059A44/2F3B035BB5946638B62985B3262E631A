@@ -1,0 +1,82 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+// Update Program.cs to configure DB, authentication, DI and Swagger
+var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Determine connection string (env var takes precedence)
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
+ ?? configuration.GetConnectionString("DefaultConnection")
+ ?? "Server=(localdb)\\mssqllocaldb;Database=app_auth_db;Trusted_Connection=True;";
+
+// Configure DbContext (SQL Server)
+builder.Services.AddDbContext<Application.Infrastructure.Persistence.AuthDbContext>(options =>
+ options.UseSqlServer(connectionString));
+
+// Register infrastructure services
+builder.Services.AddScoped<Application.Core.Interfaces.IUserRepository, Application.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<Application.Core.Interfaces.ITokenService, Application.Infrastructure.Services.TokenService>();
+
+// JWT Authentication (env vars take precedence)
+var jwtCfg = configuration.GetSection("Jwt");
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? jwtCfg["Key"] ?? "ChangeThisToAStrongSecretKeyAtLeast32Chars";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? jwtCfg["Issuer"] ?? "Application";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? jwtCfg["Audience"] ?? "ApplicationClients";
+var jwtAccessMinutesStr = Environment.GetEnvironmentVariable("JWT_ACCESS_MINUTES") ?? jwtCfg["AccessTokenExpirationMinutes"] ?? "60";
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+ options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+ options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+ options.RequireHttpsMetadata = true;
+ options.SaveToken = true;
+ options.TokenValidationParameters = new TokenValidationParameters
+ {
+ ValidateIssuer = true,
+ ValidIssuer = jwtIssuer,
+ ValidateAudience = true,
+ ValidAudience = jwtAudience,
+ ValidateIssuerSigningKey = true,
+ IssuerSigningKey = new SymmetricSecurityKey(key),
+ ValidateLifetime = true
+ };
+});
+
+var app = builder.Build();
+
+// Ensure DB created (will use SQL Server)
+using (var scope = app.Services.CreateScope())
+{
+ var db = scope.ServiceProvider.GetRequiredService<Application.Infrastructure.Persistence.AuthDbContext>();
+ db.Database.Migrate();
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+ app.UseSwagger();
+ app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
